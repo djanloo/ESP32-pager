@@ -16,8 +16,21 @@ menu "Cercapersone"
         string "Nome del dispositivo (a-z 0-9 _ -, max 32)"
         default "cercapersone"
 
+    choice PAGER_LED_TYPE
+        prompt "Tipo di LED"
+        default PAGER_LED_TYPE_GPIO if IDF_TARGET_ESP32
+        default PAGER_LED_TYPE_WS2812
+
+        config PAGER_LED_TYPE_WS2812
+            bool "LED RGB WS2812"
+
+        config PAGER_LED_TYPE_GPIO
+            bool "LED semplice su GPIO (acceso = livello alto)"
+    endchoice
+
     config PAGER_LED_GPIO
-        int "GPIO del LED WS2812"
+        int "GPIO del LED"
+        default 2 if IDF_TARGET_ESP32
         default 48
 
     config PAGER_BUTTON_GPIO
