@@ -1,0 +1,6 @@
+# Copia questo file in sdkconfig.local e personalizzalo.
+# Dopo ogni modifica: rm sdkconfig && ./idf.sh build
+CONFIG_PAGER_WIFI_SSID="NomeRete"
+CONFIG_PAGER_WIFI_PASSWORD="password"
+CONFIG_PAGER_SERVER_URL="ws://192.168.1.10:8000/ws"
+CONFIG_PAGER_DEVICE_NAME="giulia"

@@ -1,0 +1,27 @@
+menu "Cercapersone"
+
+    config PAGER_WIFI_SSID
+        string "SSID Wi-Fi"
+        default "cambiami"
+
+    config PAGER_WIFI_PASSWORD
+        string "Password Wi-Fi"
+        default "cambiami"
+
+    config PAGER_SERVER_URL
+        string "URL WebSocket del server (senza ?name=)"
+        default "ws://192.168.1.10:8000/ws"
+
+    config PAGER_DEVICE_NAME
+        string "Nome del dispositivo (a-z 0-9 _ -, max 32)"
+        default "cercapersone"
+
+    config PAGER_LED_GPIO
+        int "GPIO del LED WS2812"
+        default 48
+
+    config PAGER_BUTTON_GPIO
+        int "GPIO del pulsante (attivo basso)"
+        default 0
+
+endmenu

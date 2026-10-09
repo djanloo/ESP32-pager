@@ -5,3 +5,5 @@ firmware/managed_components/
 __pycache__/
 .venv/
 .pytest_cache/
+firmware/sdkconfig.local
+firmware/test_host/build/
