@@ -9,7 +9,7 @@ CORE  := ../components/pager_core
 CC := /usr/bin/gcc
 CFLAGS := -std=gnu11 -Wall -Wextra -g -I$(CORE)/include -I$(UNITY) -I$(CJSON)
 
-TESTS := test_pager_proto
+TESTS := test_pager_proto test_pager_app
 
 all: $(TESTS)
 	@for t in $(TESTS); do echo "== $$t"; ./build/$$t || exit 1; done
@@ -19,6 +19,9 @@ build:
 
 test_pager_proto: | build
 	$(CC) $(CFLAGS) -o build/$@ $@.c $(CORE)/pager_proto.c $(UNITY)/unity.c $(CJSON)/cJSON.c
+
+test_pager_app: | build
+	$(CC) $(CFLAGS) -o build/$@ $@.c $(CORE)/pager_app.c $(UNITY)/unity.c
 
 clean:
 	rm -rf build
