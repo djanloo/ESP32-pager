@@ -6,6 +6,8 @@
 #include "esp_check.h"
 #include "esp_log.h"
 #include "esp_websocket_client.h"
+#include "esp_wifi.h"
+#include "pager_netguard.h"
 #include "pager_proto.h"
 
 #define BACKOFF_MIN_MS 1000
@@ -18,6 +20,7 @@ static const char *TAG = "pager_link";
 static esp_websocket_client_handle_t s_client;
 static int s_backoff_ms = BACKOFF_MIN_MS;
 static char s_url[256];
+static bool s_running;
 
 static void handle_data(const esp_websocket_event_data_t *data)
 {
@@ -63,6 +66,27 @@ static void on_ws_event(void *arg, esp_event_base_t base, int32_t id, void *even
     }
 }
 
+/* Gira sul loop eventi di default, non sul task del client: qui stop() è ammesso. */
+static void on_net_event(void *arg, esp_event_base_t base, int32_t id, void *data)
+{
+    pager_net_event_t ev = (base == WIFI_EVENT) ? PAGER_NET_WIFI_LOST : PAGER_NET_IP_GOT;
+    switch (pager_netguard_handle(&s_running, ev)) {
+    case PAGER_NET_STOP_LINK:
+        ESP_LOGW(TAG, "Wi-Fi perso: chiudo il collegamento al server");
+        esp_websocket_client_stop(s_client);
+        esp_event_post(PAGER_LINK_EVENT, PAGER_LINK_EVENT_DOWN, NULL, 0, pdMS_TO_TICKS(100));
+        break;
+    case PAGER_NET_START_LINK:
+        ESP_LOGI(TAG, "Wi-Fi tornato: riapro il collegamento al server");
+        s_backoff_ms = BACKOFF_MIN_MS;
+        esp_websocket_client_set_reconnect_timeout(s_client, s_backoff_ms);
+        esp_websocket_client_start(s_client);
+        break;
+    case PAGER_NET_NONE:
+        break;
+    }
+}
+
 esp_err_t pager_link_start(const char *server_url, const char *device_name)
 {
     if (!pager_proto_valid_name(device_name)) {
@@ -84,6 +108,11 @@ esp_err_t pager_link_start(const char *server_url, const char *device_name)
     ESP_RETURN_ON_FALSE(s_client != NULL, ESP_FAIL, TAG, "init client");
     ESP_RETURN_ON_ERROR(esp_websocket_register_events(s_client, WEBSOCKET_EVENT_ANY, on_ws_event, NULL),
                         TAG, "eventi");
+    ESP_RETURN_ON_ERROR(esp_event_handler_register(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, on_net_event, NULL),
+                        TAG, "eventi Wi-Fi");
+    ESP_RETURN_ON_ERROR(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, on_net_event, NULL),
+                        TAG, "eventi IP");
+    s_running = true;
     return esp_websocket_client_start(s_client);
 }
 

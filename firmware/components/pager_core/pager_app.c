@@ -61,6 +61,12 @@ pager_output_t pager_app_handle(pager_app_t *app, pager_event_t ev, uint32_t now
             out.led = PAGER_LED_ERROR;
         }
         break;
+
+    case PAGER_EV_SEND_FAILED:
+        if (app->state == PAGER_STATE_IDLE) {
+            out.led = PAGER_LED_OFF;  /* niente lampo verde: la chiamata non è partita */
+        }
+        break;
     }
     return out;
 }

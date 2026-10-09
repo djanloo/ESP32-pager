@@ -155,6 +155,24 @@ static void test_link_up_after_error_goes_idle(void)
     TEST_ASSERT_EQUAL(PAGER_LED_OFF, out.led);
 }
 
+static void test_send_failed_cancels_green_flash(void)
+{
+    start_idle(0);
+    pager_app_handle(&app, PAGER_EV_BUTTON, 100);
+    pager_output_t out = pager_app_handle(&app, PAGER_EV_SEND_FAILED, 100);
+    TEST_ASSERT_EQUAL(PAGER_LED_OFF, out.led);
+    TEST_ASSERT_FALSE(out.send_call);
+    TEST_ASSERT_EQUAL(PAGER_STATE_IDLE, app.state);
+}
+
+static void test_send_failed_outside_idle_changes_nothing(void)
+{
+    pager_app_init(&app, 0);
+    pager_output_t out = pager_app_handle(&app, PAGER_EV_SEND_FAILED, 100);
+    TEST_ASSERT_EQUAL(PAGER_LED_NO_CHANGE, out.led);
+    TEST_ASSERT_EQUAL(PAGER_STATE_CONNECTING, app.state);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -173,5 +191,7 @@ int main(void)
     RUN_TEST(test_never_connected_shows_error_after_timeout);
     RUN_TEST(test_repeated_link_down_does_not_reset_offline_timer);
     RUN_TEST(test_link_up_after_error_goes_idle);
+    RUN_TEST(test_send_failed_cancels_green_flash);
+    RUN_TEST(test_send_failed_outside_idle_changes_nothing);
     return UNITY_END();
 }

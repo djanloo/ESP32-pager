@@ -62,6 +62,7 @@ static void app_task(void *arg)
                 ESP_LOGI(TAG, "chiamata inviata");
             } else {
                 ESP_LOGW(TAG, "invio chiamata fallito: %s", esp_err_to_name(err));
+                out = pager_app_handle(&app, PAGER_EV_SEND_FAILED, now_ms());
             }
         }
         notifier_set(out.led);

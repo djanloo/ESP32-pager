@@ -28,6 +28,7 @@ typedef enum {
     PAGER_EV_BUTTON,
     PAGER_EV_CALL_RECEIVED,
     PAGER_EV_TICK,
+    PAGER_EV_SEND_FAILED,  /* l'invio della chiamata chiesto da PAGER_EV_BUTTON è fallito */
 } pager_event_t;
 
 typedef struct {
