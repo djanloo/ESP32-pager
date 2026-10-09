@@ -1,0 +1,16 @@
+FROM docker.io/library/python:3.12-slim
+
+WORKDIR /srv
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY app ./app
+
+ENV PORT=8000 \
+    CALL_COOLDOWN_S=10
+EXPOSE 8000
+
+# Rispettato da podman solo con --format docker (vedi README).
+HEALTHCHECK --interval=30s --timeout=3s \
+    CMD python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/health' % os.environ['PORT'])"
+
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT} --ws-ping-interval 20 --ws-ping-timeout 20"]
