@@ -1,16 +1,24 @@
 """Cercapersone finto per test manuali: si connette, stampa le chiamate ricevute,
-con --call ne invia una appena connesso."""
+con --call ne invia una appena connesso.
+
+L'URL predefinito viene da PAGER_URL, letta dall'ambiente o da server/.env."""
 
 import argparse
 import asyncio
 import json
+import os
+from pathlib import Path
 
 import websockets
+from dotenv import load_dotenv
+
+ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
 async def main() -> None:
+    load_dotenv(ENV_FILE)  # non sovrascrive le variabili già impostate
     parser = argparse.ArgumentParser()
-    parser.add_argument("--url", default="ws://127.0.0.1:8000/ws")
+    parser.add_argument("--url", default=os.environ.get("PAGER_URL", "ws://127.0.0.1:8000/ws"))
     parser.add_argument("--name", default="finto")
     parser.add_argument("--call", action="store_true", help="invia una chiamata appena connesso")
     parser.add_argument("--seconds", type=float, default=30, help="per quanto restare in ascolto")

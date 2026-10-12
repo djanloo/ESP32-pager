@@ -9,3 +9,4 @@ firmware/sdkconfig.local
 firmware/test_host/build/
 firmware/sdkconfig.esp32
 firmware/build-esp32/
+server/.env
