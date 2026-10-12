@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "esp_check.h"
+#include "esp_crt_bundle.h"
 #include "esp_log.h"
 #include "esp_websocket_client.h"
 #include "esp_wifi.h"
@@ -103,6 +104,7 @@ esp_err_t pager_link_start(const char *server_url, const char *device_name)
         .ping_interval_sec = 20,
         .pingpong_timeout_sec = 60,
         .enable_close_reconnect = true,  /* riconnetti anche dopo una chiusura pulita del server */
+        .crt_bundle_attach = esp_crt_bundle_attach,  /* per wss://: CA pubbliche incluse in ESP-IDF */
     };
     s_client = esp_websocket_client_init(&cfg);
     ESP_RETURN_ON_FALSE(s_client != NULL, ESP_FAIL, TAG, "init client");
