@@ -118,12 +118,21 @@ esp_err_t pager_link_start(const char *server_url, const char *device_name)
     return esp_websocket_client_start(s_client);
 }
 
-esp_err_t pager_link_send_call(void)
+static esp_err_t send_text(const char *msg)
 {
     if (s_client == NULL || !esp_websocket_client_is_connected(s_client)) {
         return ESP_ERR_INVALID_STATE;
     }
-    const char *msg = pager_proto_call_message();
     int sent = esp_websocket_client_send_text(s_client, msg, strlen(msg), pdMS_TO_TICKS(1000));
     return sent < 0 ? ESP_FAIL : ESP_OK;
+}
+
+esp_err_t pager_link_send_call(void)
+{
+    return send_text(pager_proto_call_message());
+}
+
+esp_err_t pager_link_send_demo(void)
+{
+    return send_text(pager_proto_demo_message());
 }

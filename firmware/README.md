@@ -31,6 +31,6 @@ make -C test_host        # in una shell senza ambiente ESP-IDF attivo
 |---|---|
 | Blu che pulsa | Connessione al Wi-Fi o al server in corso |
 | Spento | Connesso, a riposo |
-| Lampo verde | La tua chiamata è partita |
+| Lampo verde | La tua chiamata è partita (doppia pressione: chiamata dimostrativa, non arriva a nessuno; dopo ~1 s il server ti risponde con una chiamata finta da "demo") |
 | Arancione lampeggiante (10 s) | Qualcuno ha chiamato la pausa — premi il pulsante per spegnerlo |
 | Rosso fisso | Server irraggiungibile da più di 60 s, o nome non valido (vedi log) |

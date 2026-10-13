@@ -6,7 +6,8 @@
 ESP_EVENT_DECLARE_BASE(INPUT_EVENT);
 
 enum {
-    INPUT_EVENT_PRESSED,  /* pulsante premuto (una volta per pressione) */
+    INPUT_EVENT_PRESSED,  /* pressione singola, notificata a finestra del doppio click scaduta */
+    INPUT_EVENT_DOUBLE_PRESSED,  /* due pressioni entro DOUBLE_WINDOW_MS */
 };
 
 /* Avvia la lettura del pulsante (attivo basso, pull-up interno).

@@ -24,5 +24,9 @@ bool pager_proto_parse(const char *data, size_t len, pager_msg_t *out);
 /* Testo da inviare al server per chiamare la pausa. */
 const char *pager_proto_call_message(void);
 
+/* Testo da inviare al server per una chiamata dimostrativa: il server non la inoltra
+ * e risponde solo al mittente con una chiamata finta da "demo". */
+const char *pager_proto_demo_message(void);
+
 /* true se name rispetta [a-z0-9_-]{1,32}, come richiesto dal server. */
 bool pager_proto_valid_name(const char *name);

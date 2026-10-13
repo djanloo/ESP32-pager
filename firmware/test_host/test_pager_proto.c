@@ -90,6 +90,11 @@ static void test_call_message(void)
     TEST_ASSERT_EQUAL_STRING("{\"type\":\"call\"}", pager_proto_call_message());
 }
 
+static void test_demo_message(void)
+{
+    TEST_ASSERT_EQUAL_STRING("{\"type\":\"demo\"}", pager_proto_demo_message());
+}
+
 static void test_valid_name(void)
 {
     TEST_ASSERT_TRUE(pager_proto_valid_name("giulia"));
@@ -115,6 +120,7 @@ int main(void)
     RUN_TEST(test_parse_unknown_type_is_ignored);
     RUN_TEST(test_parse_rejects_non_objects);
     RUN_TEST(test_call_message);
+    RUN_TEST(test_demo_message);
     RUN_TEST(test_valid_name);
     return UNITY_END();
 }

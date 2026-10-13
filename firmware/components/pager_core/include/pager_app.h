@@ -26,13 +26,15 @@ typedef enum {
     PAGER_EV_LINK_UP,
     PAGER_EV_LINK_DOWN,
     PAGER_EV_BUTTON,
+    PAGER_EV_DOUBLE_BUTTON,
     PAGER_EV_CALL_RECEIVED,
     PAGER_EV_TICK,
-    PAGER_EV_SEND_FAILED,  /* l'invio della chiamata chiesto da PAGER_EV_BUTTON è fallito */
+    PAGER_EV_SEND_FAILED,  /* l'invio chiesto da PAGER_EV_BUTTON o PAGER_EV_DOUBLE_BUTTON è fallito */
 } pager_event_t;
 
 typedef struct {
     bool send_call;
+    bool send_demo;  /* chiamata dimostrativa: il server risponde solo a noi, fingendosi un altro */
     pager_led_t led;
 } pager_output_t;
 

@@ -17,3 +17,8 @@ esp_err_t pager_link_start(const char *server_url, const char *device_name);
 
 /* Invia una chiamata. ESP_ERR_INVALID_STATE se non connesso. */
 esp_err_t pager_link_send_call(void);
+
+/* Invia una chiamata dimostrativa: il server non la inoltra e dopo ~1 s risponde
+ * solo a questo dispositivo con una chiamata finta da "demo".
+ * ESP_ERR_INVALID_STATE se non connesso. */
+esp_err_t pager_link_send_demo(void);

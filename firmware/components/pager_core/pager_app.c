@@ -15,7 +15,7 @@ void pager_app_init(pager_app_t *app, uint32_t now_ms)
 
 pager_output_t pager_app_handle(pager_app_t *app, pager_event_t ev, uint32_t now_ms)
 {
-    pager_output_t out = { .send_call = false, .led = PAGER_LED_NO_CHANGE };
+    pager_output_t out = { .send_call = false, .send_demo = false, .led = PAGER_LED_NO_CHANGE };
 
     switch (ev) {
     case PAGER_EV_LINK_UP:
@@ -39,6 +39,16 @@ pager_output_t pager_app_handle(pager_app_t *app, pager_event_t ev, uint32_t now
             out.led = PAGER_LED_SENT;
         } else if (app->state == PAGER_STATE_ALERTING) {
             app->state = PAGER_STATE_IDLE;
+            out.led = PAGER_LED_OFF;
+        }
+        break;
+
+    case PAGER_EV_DOUBLE_BUTTON:
+        if (app->state == PAGER_STATE_IDLE) {
+            out.send_demo = true;
+            out.led = PAGER_LED_SENT;
+        } else if (app->state == PAGER_STATE_ALERTING) {
+            app->state = PAGER_STATE_IDLE;  /* come la singola: presa visione */
             out.led = PAGER_LED_OFF;
         }
         break;

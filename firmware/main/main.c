@@ -30,6 +30,8 @@ static void on_event(void *arg, esp_event_base_t base, int32_t id, void *data)
     pager_event_t ev;
     if (base == INPUT_EVENT && id == INPUT_EVENT_PRESSED) {
         ev = PAGER_EV_BUTTON;
+    } else if (base == INPUT_EVENT && id == INPUT_EVENT_DOUBLE_PRESSED) {
+        ev = PAGER_EV_DOUBLE_BUTTON;
     } else if (base == PAGER_LINK_EVENT && id == PAGER_LINK_EVENT_UP) {
         ev = PAGER_EV_LINK_UP;
     } else if (base == PAGER_LINK_EVENT && id == PAGER_LINK_EVENT_DOWN) {
@@ -56,12 +58,13 @@ static void app_task(void *arg)
             ev = PAGER_EV_TICK;
         }
         pager_output_t out = pager_app_handle(&app, ev, now_ms());
-        if (out.send_call) {
-            esp_err_t err = pager_link_send_call();
+        if (out.send_call || out.send_demo) {
+            const char *what = out.send_call ? "chiamata" : "chiamata dimostrativa";
+            esp_err_t err = out.send_call ? pager_link_send_call() : pager_link_send_demo();
             if (err == ESP_OK) {
-                ESP_LOGI(TAG, "chiamata inviata");
+                ESP_LOGI(TAG, "%s inviata", what);
             } else {
-                ESP_LOGW(TAG, "invio chiamata fallito: %s", esp_err_to_name(err));
+                ESP_LOGW(TAG, "invio %s fallito: %s", what, esp_err_to_name(err));
                 out = pager_app_handle(&app, PAGER_EV_SEND_FAILED, now_ms());
             }
         }

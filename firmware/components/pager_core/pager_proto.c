@@ -50,6 +50,11 @@ const char *pager_proto_call_message(void)
     return "{\"type\":\"call\"}";
 }
 
+const char *pager_proto_demo_message(void)
+{
+    return "{\"type\":\"demo\"}";
+}
+
 bool pager_proto_valid_name(const char *name)
 {
     size_t n = strlen(name);

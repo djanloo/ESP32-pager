@@ -10,6 +10,8 @@
 
 #define POLL_MS 10
 #define STABLE_SAMPLES 5  /* 5 letture uguali = 50 ms di debounce */
+#define DOUBLE_WINDOW_MS 500  /* due pressioni entro mezzo secondo */
+#define DOUBLE_WINDOW_POLLS (DOUBLE_WINDOW_MS / POLL_MS)
 
 ESP_EVENT_DEFINE_BASE(INPUT_EVENT);
 
@@ -21,6 +23,7 @@ static void input_task(void *arg)
     bool last_raw = false;
     bool stable_pressed = false;
     int same_count = 0;
+    int pending_polls = 0;  /* >0: prima pressione vista, si attende l'eventuale seconda */
 
     for (;;) {
         bool raw = gpio_get_level(gpio) == 0;
@@ -36,9 +39,19 @@ static void input_task(void *arg)
         if (same_count == STABLE_SAMPLES && raw != stable_pressed) {
             stable_pressed = raw;
             if (stable_pressed) {
-                ESP_LOGI(TAG, "pulsante premuto");
-                esp_event_post(INPUT_EVENT, INPUT_EVENT_PRESSED, NULL, 0, 0);
+                if (pending_polls > 0) {
+                    pending_polls = 0;
+                    ESP_LOGI(TAG, "doppia pressione");
+                    esp_event_post(INPUT_EVENT, INPUT_EVENT_DOUBLE_PRESSED, NULL, 0, 0);
+                } else {
+                    pending_polls = DOUBLE_WINDOW_POLLS;
+                }
             }
+        }
+
+        if (pending_polls > 0 && --pending_polls == 0) {
+            ESP_LOGI(TAG, "pulsante premuto");
+            esp_event_post(INPUT_EVENT, INPUT_EVENT_PRESSED, NULL, 0, 0);
         }
         vTaskDelay(pdMS_TO_TICKS(POLL_MS));
     }

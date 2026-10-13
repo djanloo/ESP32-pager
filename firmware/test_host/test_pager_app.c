@@ -45,6 +45,43 @@ static void test_button_when_connecting_does_nothing(void)
     TEST_ASSERT_EQUAL(PAGER_LED_NO_CHANGE, out.led);
 }
 
+static void test_double_button_when_idle_sends_demo(void)
+{
+    start_idle(0);
+    pager_output_t out = pager_app_handle(&app, PAGER_EV_DOUBLE_BUTTON, 200);
+    TEST_ASSERT_TRUE(out.send_demo);
+    TEST_ASSERT_FALSE(out.send_call);
+    TEST_ASSERT_EQUAL(PAGER_LED_SENT, out.led);
+    TEST_ASSERT_EQUAL(PAGER_STATE_IDLE, app.state);
+}
+
+static void test_single_button_does_not_send_demo(void)
+{
+    start_idle(0);
+    pager_output_t out = pager_app_handle(&app, PAGER_EV_BUTTON, 200);
+    TEST_ASSERT_FALSE(out.send_demo);
+}
+
+static void test_double_button_when_connecting_does_nothing(void)
+{
+    pager_app_init(&app, 0);
+    pager_output_t out = pager_app_handle(&app, PAGER_EV_DOUBLE_BUTTON, 200);
+    TEST_ASSERT_FALSE(out.send_demo);
+    TEST_ASSERT_FALSE(out.send_call);
+    TEST_ASSERT_EQUAL(PAGER_LED_NO_CHANGE, out.led);
+}
+
+static void test_double_button_during_alert_dismisses_without_sending(void)
+{
+    start_idle(0);
+    pager_app_handle(&app, PAGER_EV_CALL_RECEIVED, 1000);
+    pager_output_t out = pager_app_handle(&app, PAGER_EV_DOUBLE_BUTTON, 2000);
+    TEST_ASSERT_FALSE(out.send_demo);
+    TEST_ASSERT_FALSE(out.send_call);
+    TEST_ASSERT_EQUAL(PAGER_LED_OFF, out.led);
+    TEST_ASSERT_EQUAL(PAGER_STATE_IDLE, app.state);
+}
+
 static void test_call_received_when_idle_alerts(void)
 {
     start_idle(0);
@@ -180,6 +217,10 @@ int main(void)
     RUN_TEST(test_link_up_goes_idle_with_led_off);
     RUN_TEST(test_button_when_idle_sends_call);
     RUN_TEST(test_button_when_connecting_does_nothing);
+    RUN_TEST(test_double_button_when_idle_sends_demo);
+    RUN_TEST(test_single_button_does_not_send_demo);
+    RUN_TEST(test_double_button_when_connecting_does_nothing);
+    RUN_TEST(test_double_button_during_alert_dismisses_without_sending);
     RUN_TEST(test_call_received_when_idle_alerts);
     RUN_TEST(test_call_received_when_connecting_is_ignored);
     RUN_TEST(test_button_during_alert_dismisses_without_calling);

@@ -67,6 +67,16 @@ Dispositivo → server:
 
 ```json
 {"type": "call"}
+{"type": "demo"}
+```
+
+`demo` è una chiamata dimostrativa (doppia pressione del pulsante): il server
+non la inoltra agli altri e non la conta per l'anti-spam; dopo `DEMO_DELAY_S`
+secondi risponde **solo al mittente** con una chiamata finta, come se l'avesse
+chiamato qualcun altro:
+
+```json
+{"type": "call", "from": "demo", "ts": 1760000000, "demo": true}
 ```
 
 Server → dispositivi (a tutti tranne il mittente):
@@ -116,6 +126,7 @@ client si riconnette autonomamente (vedi §5).
 |---|---|---|
 | `PORT` | `8000` | Porta di ascolto |
 | `CALL_COOLDOWN_S` | `10` | Intervallo minimo tra due chiamate dello stesso mittente |
+| `DEMO_DELAY_S` | `1` | Attesa prima della risposta finta a una chiamata dimostrativa |
 
 ### Gestione errori
 
@@ -171,12 +182,15 @@ solo `sdkconfig.defaults` con valori segnaposto.
 | Stato / evento | LED | Pulsante |
 |---|---|---|
 | In connessione (Wi-Fi o server) | Blu, pulsazione lenta | Ignorato |
-| Connesso, a riposo | Spento | Invia chiamata |
-| Chiamata inviata | Verde, lampo breve (~300 ms) | — |
-| Chiamata ricevuta | Arancione lampeggiante per 10 s, poi spento | Spegne l'avviso (presa visione), **non** invia una chiamata |
+| Connesso, a riposo | Spento | Singola: invia chiamata; doppia: invia chiamata dimostrativa |
+| Chiamata (o demo) inviata | Verde, lampo breve (~300 ms) | — |
+| Chiamata ricevuta | Arancione lampeggiante per 10 s, poi spento | Singola o doppia: spegne l'avviso (presa visione), **non** invia nulla |
 | Server irraggiungibile da > 60 s | Rosso fisso (continua a tentare la riconnessione) | Ignorato |
 
 Una nuova chiamata ricevuta durante un avviso già attivo fa ripartire i 10 s.
+
+Doppia pressione = due pressioni entro 500 ms. Per distinguerla, la pressione
+singola viene notificata solo allo scadere di quella finestra.
 
 ## 6. Test
 
