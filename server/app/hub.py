@@ -1,10 +1,13 @@
 """Registro dei cercapersone connessi e inoltro delle chiamate."""
 
+import asyncio
 import logging
 import time
 from typing import Any, Callable, Protocol
 
 log = logging.getLogger("pager.hub")
+
+DEMO_FROM = "demo"  # mittente finto delle risposte alle chiamate dimostrative
 
 
 class Connection(Protocol):
@@ -19,8 +22,10 @@ class Hub:
         cooldown_s: float = 10.0,
         clock: Callable[[], float] = time.monotonic,
         wall_clock: Callable[[], float] = time.time,
+        demo_delay_s: float = 1.0,
     ) -> None:
         self._cooldown_s = cooldown_s
+        self._demo_delay_s = demo_delay_s
         self._clock = clock
         self._wall_clock = wall_clock
         self._conns: dict[str, Connection] = {}
@@ -66,3 +71,23 @@ class Hub:
                 self.unregister(name, conn)
         log.info("chiamata di %s consegnata a %d dispositivi", from_name, delivered)
         return delivered
+
+    async def demo(self, from_name: str) -> bool:
+        """Chiamata dimostrativa: dopo un breve ritardo (per lasciar vedere il lampo
+        verde) risponde solo al mittente, come se l'avesse chiamato DEMO_FROM.
+        Non tocca l'anti-spam. Ritorna False se il mittente non è più connesso."""
+        log.info("chiamata dimostrativa da %s", from_name)
+        await asyncio.sleep(self._demo_delay_s)
+        conn = self._conns.get(from_name)
+        if conn is None:
+            log.info("risposta dimostrativa non consegnata: %s non è più connesso", from_name)
+            return False
+        message = {"type": "call", "from": DEMO_FROM, "ts": int(self._wall_clock()), "demo": True}
+        try:
+            await conn.send_json(message)
+        except Exception as exc:
+            log.warning("invio a %s fallito (%s): rimosso", from_name, exc)
+            self.unregister(from_name, conn)
+            return False
+        log.info("risposta dimostrativa inviata a %s", from_name)
+        return True

@@ -27,7 +27,12 @@ class FakeClock:
 
 
 def make_hub(clock=None, cooldown_s: float = 10.0) -> Hub:
-    return Hub(cooldown_s=cooldown_s, clock=clock or FakeClock(), wall_clock=lambda: 1760000000.7)
+    return Hub(
+        cooldown_s=cooldown_s,
+        clock=clock or FakeClock(),
+        wall_clock=lambda: 1760000000.7,
+        demo_delay_s=0,
+    )
 
 
 def test_call_reaches_everyone_except_sender():
@@ -132,3 +137,60 @@ def test_failed_send_removes_device_and_continues():
     assert asyncio.run(scenario()) == 1
     assert len(ok.sent) == 1
     assert hub.names() == ["ok"]
+
+
+def test_demo_answers_only_the_sender_as_someone_else():
+    hub = make_hub()
+    a, b = FakeConn(), FakeConn()
+
+    async def scenario():
+        await hub.register("a", a)
+        await hub.register("b", b)
+        return await hub.demo("a")
+
+    assert asyncio.run(scenario()) is True
+    assert a.sent == [{"type": "call", "from": "demo", "ts": 1760000000, "demo": True}]
+    assert b.sent == []
+
+
+def test_demo_does_not_use_cooldown():
+    hub = make_hub()
+    a, b = FakeConn(), FakeConn()
+
+    async def scenario():
+        await hub.register("a", a)
+        await hub.register("b", b)
+        await hub.demo("a")
+        await hub.demo("a")
+        return await hub.call("a")
+
+    assert asyncio.run(scenario()) == 1
+    assert len(a.sent) == 2
+
+
+def test_demo_from_unconnected_sender_is_dropped():
+    hub = make_hub()
+    b = FakeConn()
+
+    async def scenario():
+        await hub.register("b", b)
+        return await hub.demo("a")
+
+    assert asyncio.run(scenario()) is False
+    assert b.sent == []
+
+
+def test_demo_waits_before_answering():
+    hub = Hub(demo_delay_s=0.05)
+    a = FakeConn()
+
+    async def scenario():
+        await hub.register("a", a)
+        task = asyncio.create_task(hub.demo("a"))
+        await asyncio.sleep(0)
+        sent_early = list(a.sent)
+        await task
+        return sent_early
+
+    assert asyncio.run(scenario()) == []
+    assert len(a.sent) == 1

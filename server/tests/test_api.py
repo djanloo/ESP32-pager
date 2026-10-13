@@ -10,7 +10,7 @@ from app.main import create_app
 
 @pytest.fixture
 def client():
-    with TestClient(create_app(Hub(cooldown_s=10))) as c:
+    with TestClient(create_app(Hub(cooldown_s=10, demo_delay_s=0))) as c:
         yield c
 
 
@@ -43,6 +43,18 @@ def test_ws_call_reaches_others_but_not_sender(client):
         # Se "a" avesse ricevuto la propria chiamata, il primo messaggio sarebbe quello.
         b.send_json({"type": "call"})
         assert a.receive_json()["from"] == "b"
+
+
+def test_ws_demo_answers_only_the_sender(client):
+    with client.websocket_connect("/ws?name=a") as a, client.websocket_connect("/ws?name=b") as b:
+        wait_devices(client, ["a", "b"])
+        a.send_json({"type": "demo"})
+        msg = a.receive_json()
+        assert msg["type"] == "call" and msg["from"] == "demo" and msg["demo"] is True
+        assert isinstance(msg["ts"], int)
+        # Se la demo fosse arrivata anche a b, sarebbe lei il suo primo messaggio.
+        a.send_json({"type": "call"})
+        assert b.receive_json()["from"] == "a"
 
 
 def test_http_call_delivers_to_connected_devices(client):

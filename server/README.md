@@ -21,6 +21,7 @@ Log: `podman logs -f cercapersone` (connessioni, disconnessioni, chiamate).
 |---|---|---|
 | `PORT` | `8000` | Porta di ascolto nel container |
 | `CALL_COOLDOWN_S` | `10` | Secondi minimi tra due chiamate dello stesso mittente |
+| `DEMO_DELAY_S` | `1` | Secondi prima della risposta finta a una chiamata dimostrativa (`{"type":"demo"}`), inviata solo al mittente |
 
 ## Endpoint
 

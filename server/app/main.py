@@ -22,7 +22,10 @@ class CallRequest(BaseModel):
 
 def create_app(hub: Hub | None = None) -> FastAPI:
     if hub is None:
-        hub = Hub(cooldown_s=float(os.environ.get("CALL_COOLDOWN_S", "10")))
+        hub = Hub(
+            cooldown_s=float(os.environ.get("CALL_COOLDOWN_S", "10")),
+            demo_delay_s=float(os.environ.get("DEMO_DELAY_S", "1")),
+        )
     app = FastAPI(title="Cercapersone")
     app.state.hub = hub
 
@@ -64,8 +67,11 @@ def create_app(hub: Hub | None = None) -> FastAPI:
                 except json.JSONDecodeError:
                     log.warning("messaggio non JSON da %s: %r", name, text[:100])
                     continue
-                if isinstance(payload, dict) and payload.get("type") == "call":
+                kind = payload.get("type") if isinstance(payload, dict) else None
+                if kind == "call":
                     await hub.call(name)
+                elif kind == "demo":
+                    await hub.demo(name)
                 else:
                     log.warning("messaggio ignorato da %s: %r", name, text[:100])
         except (WebSocketDisconnect, RuntimeError):
